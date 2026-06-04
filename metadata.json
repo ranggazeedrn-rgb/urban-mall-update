@@ -1,0 +1,6 @@
+{
+  "name": "UrbanMall",
+  "description": "A modern, mobile-first mall and e-commerce experience with a clean UI/UX.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
