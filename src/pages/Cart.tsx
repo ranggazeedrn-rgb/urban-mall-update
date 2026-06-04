@@ -1,14 +1,23 @@
-import React from 'react';
-import { motion } from 'motion/react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from 'lucide-react';
 import { useCart } from '../CartContext';
 import { formatPrice } from '../lib/utils';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { EmptyState } from '../components/ui/EmptyState';
 
 export default function Cart() {
   const { cart, removeFromCart, updateQuantity, cartTotal, cartCount } = useCart();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const navigate = useNavigate();
+
+  const handleCheckoutClick = () => {
+    setIsCheckingOut(true);
+    setTimeout(() => {
+      navigate('/checkout');
+    }, 1000); // Wait for transition
+  };
 
   if (cart.length === 0) {
     return (
@@ -115,10 +124,70 @@ export default function Cart() {
           </div>
         </div>
 
-        <Link to="/checkout" className="w-full bg-black text-white py-5 rounded-full font-bold uppercase tracking-[0.2em] text-sm flex items-center justify-center gap-3 hover:scale-[1.01] active:scale-[0.98] transition-all shadow-xl shadow-black/10">
-          PROCEED TO CHECKOUT <ArrowRight size={18} />
-        </Link>
+        <button 
+          onClick={handleCheckoutClick}
+          disabled={isCheckingOut}
+          className="relative overflow-hidden w-full bg-black text-white py-5 rounded-full font-bold uppercase tracking-[0.2em] text-sm flex items-center justify-center gap-3 hover:scale-[1.01] active:scale-[0.98] transition-all shadow-xl shadow-black/10 disabled:opacity-90 disabled:scale-100 disabled:cursor-wait"
+        >
+          <AnimatePresence mode="wait">
+            {!isCheckingOut ? (
+              <motion.div
+                key="text"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex items-center gap-3"
+              >
+                PROCEED TO CHECKOUT <ArrowRight size={18} />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex items-center gap-3"
+              >
+                <span className="flex items-center gap-1">
+                  <motion.span animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0 }} className="w-2 h-2 bg-white rounded-full" />
+                  <motion.span animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }} className="w-2 h-2 bg-white rounded-full" />
+                  <motion.span animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }} transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }} className="w-2 h-2 bg-white rounded-full" />
+                </span>
+                SECURING PAYLOAD
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </button>
       </div>
+
+      {/* Full-screen checkout transition overlay */}
+      <AnimatePresence>
+        {isCheckingOut && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: "easeInOut" }}
+            className="fixed inset-0 bg-white z-[100] pointer-events-none flex flex-col items-center justify-center space-y-6"
+          >
+             <motion.div 
+               initial={{ scale: 0.8, opacity: 0 }}
+               animate={{ scale: 1, opacity: 1 }}
+               transition={{ delay: 0.2, duration: 0.5, type: 'spring' }}
+               className="w-16 h-16 bg-black rounded-full flex items-center justify-center shadow-2xl"
+             >
+                <ShoppingBag className="text-white" size={24} />
+             </motion.div>
+             <motion.div 
+               initial={{ opacity: 0, y: 10 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ delay: 0.4, duration: 0.3 }}
+               className="text-2xl font-bold italic uppercase tracking-tighter"
+             >
+                Initializing Checkout Gateway
+             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }
